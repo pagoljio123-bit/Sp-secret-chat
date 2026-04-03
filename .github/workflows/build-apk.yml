@@ -1,0 +1,41 @@
+name: Build Android APK
+
+on:
+  workflow_dispatch: # এই অপশনটির ফলে আপনি যখন চাইবেন তখনই অ্যাপ তৈরি করতে পারবেন
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Build APK File
+        run: |
+          cordova create gateway_app com.secret.gateway "Gateway"
+          cp index.html gateway_app/www/
+          cp manifest.json gateway_app/www/
+          cp sw.js gateway_app/www/
+          cd gateway_app
+          cordova platform add android
+          cordova build android
+
+      - name: Upload Finished APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: Gateway-App-APK
+          path: gateway_app/platforms/android/app/build/outputs/apk/debug/app-debug.apk
